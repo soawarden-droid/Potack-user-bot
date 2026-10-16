@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
+android {
+    namespace 'dev.xa.potack'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'dev.xa.potack'
+        minSdk 26
+        targetSdk 35
+        versionCode 2
+        versionName '0.1.1'
+        ndk { abiFilters 'arm64-v8a', 'x86_64' }
+    }
+}
+
+// Explicit allowlist: never package desktop sessions, credentials, notes, or caches.
+tasks.register('syncUserbot', Sync) {
+    from('../..') {
+        include 'main.py', 'cleanup.py', 'research.py', 'research_api.py', 'research_store.py', 'research_format.py'
+    }
+    into layout.buildDirectory.dir('generated/userbot')
+}
+tasks.named('preBuild').configure { dependsOn 'syncUserbot' }
+tasks.configureEach {
+    if (name.contains('Python')) { dependsOn 'syncUserbot' }
+}
+chaquopy {
+    defaultConfig {
+        version = '3.12'
+        pip {
+            options '--find-links', project.file('../wheels').absolutePath
+            install 'pyaes==1.6.1'
+            install 'Telethon==1.45.0'
+            install 'requests==2.34.2'
+            install 'tzdata==2026.2'
+        }
+    }
+    sourceSets {
+        main {
+            srcDir layout.buildDirectory.dir('generated/userbot').get().asFile
+            exclude '**/__pycache__/**'
+        }
+    }
+}

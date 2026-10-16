@@ -1,0 +1,5 @@
+<resources>
+    <string name="working">Working…</string>
+    <string name="service_error">Could not start service. Reopen xa and retry.</string>
+    <string name="status_format">● %1$s</string>
+</resources>
